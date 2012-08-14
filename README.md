@@ -1,3 +1,5 @@
+Note: This is a maintenance branch for an iOS 3 compatible version of ApptentiveConnect. Please use the master branch if your app doesn't require iOS 3 compatibility, as this branch will be behind in features and is in maintenance mode only.
+
 Apptentive iOS SDK
 ==================
 
