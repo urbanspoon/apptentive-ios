@@ -102,7 +102,7 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 }
 
 #if TARGET_OS_IPHONE
-- (void)appDidLaunch:(BOOL)canPromptForRating viewController:(UIViewController *)vc 
+- (void)appDidLaunch:(BOOL)canPromptForRating viewController:(UIViewController *)vc
 #elif TARGET_OS_MAC
 - (void)appDidLaunch:(BOOL)canPromptForRating
 #endif
@@ -131,12 +131,12 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 - (void)appDidEnterForeground:(BOOL)canPromptForRating viewController:(UIViewController *)vc {
 	self.viewController = vc;
 	[self userDidUseApp];
-	
+
 	BOOL showedDialog = NO;
 	if (canPromptForRating) {
 		showedDialog = [self showDialogIfNecessary];
 	}
-	
+
 	if (!showedDialog) {
 		self.viewController = nil;
 	}
@@ -206,7 +206,7 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 #if TARGET_OS_IPHONE
 - (void)showRatingDialog:(UIViewController *)vc
 #elif TARGET_OS_MAC
-- (IBAction)showRatingDialog:(id)sender 
+- (IBAction)showRatingDialog:(id)sender
 #endif
 {
 	NSString *title = ATLocalizedString(@"Thank You", @"Rate app title.");
@@ -330,7 +330,7 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 
 - (NSURL *)URLForRatingApp {
 #if TARGET_OS_IPHONE
-	NSString *URLString = [NSString stringWithFormat:@"itms-apps://ax.itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=%@", iTunesAppID];
+	NSString *URLString = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/%@/app/id%@", [[NSLocale currentLocale] objectForKey: NSLocaleCountryCode], iTunesAppID];
 #elif TARGET_OS_MAC
 	NSString *URLString = [NSString stringWithFormat:@"macappstore://itunes.apple.com/app/id%@?mt=12", iTunesAppID];
 #endif
@@ -353,33 +353,33 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 
 - (BOOL)requirementsToShowDialogMet {
 	BOOL result = NO;
-	
+
 	do { // once
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		
+
 		// Ratings are disabled, don't show dialog.
 		if ([[defaults objectForKey:ATAppRatingEnabledPreferenceKey] boolValue] == NO) {
 			break;
 		}
-		
+
 		// Check to see if the user has rated the app.
 		NSNumber *rated = [defaults objectForKey:ATAppRatingFlowRatedAppKey];
 		if (rated != nil && [rated boolValue]) {
 			break;
 		}
-		
+
 		// Check to see if the user has rejected rating this version.
 		NSNumber *rejected = [defaults objectForKey:ATAppRatingFlowDeclinedToRateThisVersionKey];
 		if (rejected != nil && [rejected boolValue]) {
 			break;
 		}
-		
+
 		// Check to see if the user dislikes this version of the app.
 		NSNumber *dislikes = [defaults objectForKey:ATAppRatingFlowUserDislikesThisVersionKey];
 		if (dislikes != nil && [dislikes boolValue]) {
 			break;
 		}
-		
+
 		// If we don't have the last version set, update it and don't show
 		// the dialog.
 		NSString *lastBundleVersion = [defaults objectForKey:ATAppRatingFlowLastUsedVersionKey];
@@ -387,7 +387,7 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 			[self updateVersionInfo];
 			break;
 		}
-		
+
 		// If the user has been prompted already, make sure we're after the
 		// number of days for them to be re-prompted.
 		NSDate *lastPrompt = [defaults objectForKey:ATAppRatingFlowLastPromptDateKey];
@@ -397,7 +397,7 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 				break;
 			}
 		}
-		
+
 		ATAppRatingFlowPredicateInfo *info = [[ATAppRatingFlowPredicateInfo alloc] init];
 		info.firstUse = [defaults objectForKey:ATAppRatingFlowLastUsedVersionFirstUseDateKey];
 		info.significantEvents = [[defaults objectForKey:ATAppRatingFlowSignificantEventsCountKey] unsignedIntegerValue];
@@ -405,14 +405,14 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 		info.daysBeforePrompt = self.daysBeforePrompt;
 		info.significantEventsBeforePrompt = self.significantEventsBeforePrompt;
 		info.usesBeforePrompt = self.usesBeforePrompt;
-		
+
 		NSPredicate *predicate = [ATAppRatingFlow_Private predicateForPromptLogic:[defaults objectForKey:ATAppRatingPromptLogicPreferenceKey] withPredicateInfo:info];
 		if (predicate) {
 			result = [ATAppRatingFlow_Private evaluatePredicate:predicate withPredicateInfo:info];
 		}
 		[info release], info = nil;
 	} while (NO);
-	
+
 	return result;
 }
 
@@ -442,10 +442,10 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 
 - (void)updateVersionInfo {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	
+
 	NSString *currentBundleVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleVersionKey];
 	NSString *lastBundleVersion = [defaults objectForKey:ATAppRatingFlowLastUsedVersionKey];
-	
+
 	if (lastBundleVersion == nil || ![lastBundleVersion isEqualToString:currentBundleVersion]) {
 		BOOL clearCounts = [(NSNumber *)[defaults objectForKey:ATAppRatingClearCountsOnUpgradePreferenceKey] boolValue];
 		if (clearCounts) {
@@ -453,55 +453,55 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 			[defaults setObject:[NSNumber numberWithUnsignedInteger:0] forKey:ATAppRatingFlowUseCountKey];
 			[defaults setObject:[NSNumber numberWithUnsignedInteger:0] forKey:ATAppRatingFlowSignificantEventsCountKey];
 		}
-		
+
 		[defaults setObject:currentBundleVersion forKey:ATAppRatingFlowLastUsedVersionKey];
-		
+
 		[defaults setObject:[NSDate date] forKey:ATAppRatingFlowLastUsedVersionFirstUseDateKey];
 		[defaults setObject:[NSNumber numberWithBool:NO] forKey:ATAppRatingFlowDeclinedToRateThisVersionKey];
 		[defaults setObject:[NSNumber numberWithBool:NO] forKey:ATAppRatingFlowUserDislikesThisVersionKey];
-		
+
 		[defaults synchronize];
 	}
-	
+
 }
 
 - (void)userDidUseApp {
 	if (lastUseOfApp != nil) {
 		NSTimeInterval interval = [lastUseOfApp timeIntervalSinceNow];
-		
+
 		if (interval >= -kATAppAppUsageMinimumInterval) {
 			return;
 		}
 	}
 	lastUseOfApp = [[NSDate alloc] init];
-	
+
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	
+
 	NSNumber *useCount = [defaults objectForKey:ATAppRatingFlowUseCountKey];
 	NSUInteger count = 0;
 	if (useCount != nil) {
 		count = [useCount unsignedIntegerValue];
 	}
 	count++;
-	
+
 	[defaults setObject:[NSNumber numberWithUnsignedInteger:count] forKey:ATAppRatingFlowUseCountKey];
 	[defaults synchronize];
-	
+
 	[self updateVersionInfo];
 }
 
 - (void)userDidSignificantEvent {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	
+
 	NSNumber *eventCount = [defaults objectForKey:ATAppRatingFlowSignificantEventsCountKey];
 	NSUInteger count = 0;
 	if (eventCount != nil) {
 		count = [eventCount unsignedIntegerValue];
 	}
-	
+
 	[defaults setObject:[NSNumber numberWithUnsignedInteger:count+1] forKey:ATAppRatingFlowSignificantEventsCountKey];
 	[defaults synchronize];
-	
+
 }
 
 - (void)setRatingDialogWasShown {
@@ -576,28 +576,28 @@ static ATAppRatingFlow *sharedRatingFlow = nil;
 	}
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	UIViewController *vc = [self rootViewControllerForCurrentWindow];
-	
+
 	if (vc && [self requirementsToShowDialogMet]) {
 		// We can get a root view controller and we should be showing a dialog.
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChangedAndPendingDialog:) name:ATReachabilityStatusChanged object:nil];
 	}
-	
+
 	[pool release], pool = nil;
 }
 
 - (void)reachabilityChangedAndPendingDialog:(NSNotification *)notification {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:ATReachabilityStatusChanged object:nil];
-	
+
 	UIViewController *vc = [self rootViewControllerForCurrentWindow];
-	
+
 	if (vc && [self requirementsToShowDialogMet]) {
 		if ([[ATReachability sharedReachability] currentNetworkStatus] == ATNetworkNotReachable) {
 			[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChangedAndPendingDialog:) name:ATReachabilityStatusChanged object:nil];
 		} else {
 			[self showEnjoymentDialog:vc];
 		}
-		
+
 	}
 	[pool release], pool = nil;
 }
