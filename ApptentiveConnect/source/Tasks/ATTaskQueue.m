@@ -40,7 +40,13 @@ static ATTaskQueue *sharedTaskQueue = nil;
 	@synchronized(self) {
 		if (sharedTaskQueue == nil) {
 			if ([ATTaskQueue serializedQueueExists]) {
-				sharedTaskQueue = [[NSKeyedUnarchiver unarchiveObjectWithFile:[ATTaskQueue taskQueuePath]] retain];
+				// HACK:  If there is a newer version of the taskQueue file format, this blows up.
+				@try {
+					sharedTaskQueue = [[NSKeyedUnarchiver unarchiveObjectWithFile:[ATTaskQueue taskQueuePath]] retain];
+				}
+				@catch (NSException *exception) {
+					sharedTaskQueue = nil;
+				}
 			}
 			if (!sharedTaskQueue) {
 				sharedTaskQueue = [[ATTaskQueue alloc] init];
